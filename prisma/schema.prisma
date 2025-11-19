@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  name        String
+  email       String        @unique
+  birthDate   DateTime?
+  password    String
+  role        Role          @default(USER)
+  avatar      String?
+  tasks       Task[]
+  timelogs    Timelog[]
+  files       File[]
+  resetToken         String?  
+  resetTokenExpiry   DateTime?
+  notifications Notification[] @relation("UserNotifications") 
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([createdAt])
+  @@index([role])
+}
+
+
+model Task {
+  id          Int         @id @default(autoincrement())
+  title       String
+  description String?
+  dueDate     DateTime?
+  priority    Priority    @default(MEDIUM)
+  timeSpent   Float?      @default(0)
+  completed   Boolean     @default(false)
+  files       File[]    
+  user        User        @relation(fields: [userId], references: [id])
+  userId      Int
+  category    Category?   @relation(fields: [categoryId], references: [id])
+  categoryId  Int?
+  timelogs    Timelog[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([userId])
+  @@index([categoryId])
+  @@index([priority])
+  @@index([completed])
+  @@index([createdAt])
+}
+
+
+model Category {
+  id    Int     @id @default(autoincrement())
+  name  String
+  tasks Task[]
+
+  @@index([name])
+}
+
+
+model Timelog {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  taskId    Int
+  startTime DateTime
+  endTime   DateTime?
+  duration  Float?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@index([userId])
+  @@index([taskId])
+  @@index([startTime])
+}
+
+
+model File {
+  id          Int      @id @default(autoincrement())
+  filename    String
+  originalName String
+  mimetype    String
+  size        Int
+  path        String
+  uploadedBy  Int
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [uploadedBy], references: [id])
+  taskId      Int?
+  task        Task? @relation(fields: [taskId], references: [id])
+
+  @@index([uploadedBy])
+  @@index([taskId])
+  @@index([createdAt])
+}
+
+
+model Notification {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  user      User      @relation("UserNotifications", fields: [userId], references: [id])
+  message   String
+  title     String
+  read      Boolean   @default(false)
+  type      NotificationType @default(INFO)
+  priority  NotificationPriority @default(MEDIUM)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([priority])
+  @@index([createdAt])
+}
+
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
