@@ -48,7 +48,7 @@ app.use(
 // CORS - дозвіл запитів з фронтенду
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5432",
+    origin: process.env.BASE_URL || "http://localhost:3000",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -129,7 +129,7 @@ app.get("/", (req, res) => {
       users: "/api/users",
       tasks: "/api/tasks",    
       categories: "/api/categories",
-      timelogs: "/api/timelogs",   
+      timelogs: "/api/timelogs"
     },
   });
 });
